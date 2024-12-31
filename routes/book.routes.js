@@ -12,7 +12,7 @@ const validateFields = (req, res, next) => {
     next();
 };
 
-// **Route 1: Add a Book**
+//Add a Book
 router.post(
     '/',
     [
@@ -47,7 +47,7 @@ router.post(
     }
 );
 
-// **Route 2: Get All Books (Public)**
+//Get All Books (Public)
 router.get('/', async (req, res) => {
     try {
         const books = await Book.find().select('-review'); // Exclude reviews for public viewing
@@ -57,7 +57,7 @@ router.get('/', async (req, res) => {
     }
 });
 
-// **Route 3: Get Books by User**
+//Get Books by User
 router.get('/user/:userId', async (req, res) => {
     try {
         const { userId } = req.params;
@@ -68,7 +68,7 @@ router.get('/user/:userId', async (req, res) => {
     }
 });
 
-// **Route 4: Update a Book**
+//Update a Book
 router.put(
     '/:id',
     [
@@ -97,7 +97,7 @@ router.put(
     }
 );
 
-// **Route 5: Delete a Book**
+//Delete a Book
 router.delete('/:id', async (req, res) => {
     try {
         const { id } = req.params;
