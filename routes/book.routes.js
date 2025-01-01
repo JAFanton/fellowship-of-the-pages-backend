@@ -1,20 +1,9 @@
 const express = require('express');
 const router = express.Router();
-const Book = require('../models/Book'); // Adjust path as necessary
-const { body, validationResult } = require('express-validator');
-
-// Middleware to check for validation errors
-const validateFields = (req, res, next) => {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-        return res.status(400).json({ errors: errors.array() });
-    }
-    next();
-};
+const Book = require('../models/Book');
 
 //Add a Book
-router.post(
-    '/',
+router.post('/',
     [
         body('title').notEmpty().withMessage('Title is required'),
         body('coverImageUrl').isURL().withMessage('Valid cover image URL is required'),
@@ -24,7 +13,6 @@ router.post(
             .withMessage('Genre must be either Fiction or Non-Fiction'),
         body('review').optional().isLength({ max: 1000 }).withMessage('Review is too long')
     ],
-    validateFields,
     async (req, res) => {
         try {
             const { title, author, coverImageUrl, bookImageUrl, genre, review, userId } = req.body;
@@ -81,7 +69,6 @@ router.put(
             .withMessage('Genre must be either Fiction or Non-Fiction'),
         body('review').optional().isLength({ max: 1000 }).withMessage('Review is too long')
     ],
-    validateFields,
     async (req, res) => {
         try {
             const { id } = req.params;
