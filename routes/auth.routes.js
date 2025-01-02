@@ -18,6 +18,7 @@ const saltRounds = 10;
 
 // POST /auth/signup  - Only two emails are allowed for signup
 const allowedEmails = ["justin.fanton@gmail.com", "dominicmeddick@gmail.com"]
+
 router.post("/signup", (req, res, next) => {
   const { email, password, name } = req.body;
 
@@ -67,6 +68,11 @@ router.post("/signup", (req, res, next) => {
       return User.create({ email, password: hashedPassword, name });
     })
     .then((createdUser) => {
+
+      if(!createdUser) {
+        throw new Error("Failed to create user.");
+      }
+      
       // Deconstruct the newly created user object to omit the password
       // We should never expose passwords publicly
       const { email, name, _id } = createdUser;
@@ -77,7 +83,10 @@ router.post("/signup", (req, res, next) => {
       // Send a json response containing the user object
       res.status(201).json({ user: user });
     })
-    .catch((err) => next(err)); // In this case, we send error handling to the error handling middleware.
+    .catch((err) => {
+      console.error("Error creating user:", err);
+      next(err);
+    }); // In this case, we send error handling to the error handling middleware.
 });
 
 // POST  /auth/login - Verifies email and password and returns a JWT
