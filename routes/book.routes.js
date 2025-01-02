@@ -6,18 +6,13 @@ const { isAuthenticated } = require("../middleware/jwt.middleware");
 
 // POST /api/books - Add a new book
 router.post("/books", isAuthenticated, (req, res) => {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
-    }
 
-    const { title, author, coverImageUrl, bookImageUrl, genre, review } = req.body;
+    const { title, author, bookImageUrl, genre, review } = req.body;
     const userId = req.payload._id;
 
     Book.create({
       title,
       author,
-      coverImageUrl,
       bookImageUrl,
       genre,
       review,
