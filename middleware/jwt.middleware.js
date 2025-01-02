@@ -1,5 +1,9 @@
 const { expressjwt: jwt } = require("express-jwt");
 
+if (!process.env.TOKEN_SECRET) {
+  throw new Error("TOKEN_SECRET is not defined in the environment variables");
+}
+
 // Instantiate the JWT token validation middleware
 const isAuthenticated = jwt({
   secret: process.env.TOKEN_SECRET,
@@ -19,11 +23,19 @@ function getTokenFromHeaders(req) {
     const token = req.headers.authorization.split(" ")[1];
     return token;
   }
-
+  console.error("No token found in Authorization headers");
   return null;
 }
+
+const handleJWTError = (err, req, res, next) => {
+  if (err.name === "UnauthorizedError") {
+      return res.status(401).json({ error: "Invalid or missing token" });
+  }
+  next(err);
+};
 
 // Export the middleware so that we can use it to create protected routes
 module.exports = {
   isAuthenticated,
+  handleJWTError,
 };
