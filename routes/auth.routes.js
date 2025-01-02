@@ -16,10 +16,16 @@ const { isAuthenticated } = require("../middleware/jwt.middleware.js");
 // How many rounds should bcrypt run the salt (default - 10 rounds)
 const saltRounds = 10;
 
-// POST /auth/signup  - Creates a new user in the database
+// POST /auth/signup  - Only two emails are allowed for signup
+const allowedEmails = ["justin.fanton@gmail.com", "dominicmeddick@gmail.com"]
 router.post("/signup", (req, res, next) => {
   const { email, password, name } = req.body;
 
+  // Check's if the signup email is one of the two allowed emails
+  if (!allowedEmails.includes(email)) {
+    return res.status(403).json({message: "Signup is restricted to specific users. Please use an authorized email.", });
+  }
+  
   // Check if email or password or name are provided as empty strings
   if (email === "" || password === "" || name === "") {
     res.status(400).json({ message: "Provide email, password and name" });
