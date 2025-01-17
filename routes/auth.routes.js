@@ -19,6 +19,18 @@ const saltRounds = 10;
 // POST /auth/signup  - Only two emails are allowed for signup
 const allowedEmails = ["justin.fanton@gmail.com", "dominicmeddick@gmail.com"]
 
+//Fetches all user data for the leaderboard
+router.get("/users", isAuthenticated, (req, res, next) => {
+  User.find({}, { password: 0 }) // Exclude passwords
+    .then((users) => {
+      res.status(200).json(users);
+    })
+    .catch((err) => {
+      console.error("Error retrieving users:", err);
+      res.status(500).json({ message: "Failed to retrieve users." });
+    });
+});
+
 router.post("/signup", (req, res, next) => {
   const { email, password, name } = req.body;
 
