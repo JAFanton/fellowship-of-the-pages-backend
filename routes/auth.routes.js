@@ -31,74 +31,59 @@ router.get("/users", isAuthenticated, (req, res, next) => {
     });
 });
 
-router.post("/signup", (req, res, next) => {
+router.post("/signup", async (req, res, next) => {
   const { email, password, name } = req.body;
 
-  // Check's if the signup email is one of the two allowed emails
-  if (!allowedEmails.includes(email)) {
-    return res.status(403).json({message: "Signup is restricted to specific users. Please use an authorized email.", });
+  try {
+    // Validate input
+    if (!allowedEmails.includes(email)) {
+      return res.status(403).json({
+        message: "Signup is restricted to specific users. Please use an authorized email.",
+      });
+    }
+
+    if (!email || !password || !name) {
+      return res.status(400).json({ message: "Provide email, password, and name" });
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({ message: "Provide a valid email address." });
+    }
+
+    const passwordRegex = /(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{6,}/;
+    if (!passwordRegex.test(password)) {
+      return res.status(400).json({
+        message:
+          "Password must have at least 6 characters and contain at least one number, one lowercase, and one uppercase letter.",
+      });
+    }
+
+    // Check if signup is still allowed
+    const existingUsers = await User.find({ email: { $in: allowedEmails } });
+    if (existingUsers.length >= allowedEmails.length) {
+      return res.status(403).json({ message: "Signup is closed." });
+    }
+
+    // Check for existing user
+    const foundUser = await User.findOne({ email });
+    if (foundUser) {
+      return res.status(400).json({ message: "User already exists." });
+    }
+
+    // Hash password and create user
+    const salt = bcrypt.genSaltSync(saltRounds);
+    const hashedPassword = bcrypt.hashSync(password, salt);
+    const createdUser = await User.create({ email, password: hashedPassword, name });
+
+    if (!createdUser) throw new Error("Failed to create user.");
+
+    const { _id } = createdUser;
+    res.status(201).json({ user: { _id, email, name } });
+  } catch (err) {
+    console.error("Error during signup:", err);
+    res.status(500).json({ message: "Internal server error." });
   }
-  
-  // Check if email or password or name are provided as empty strings
-  if (email === "" || password === "" || name === "") {
-    res.status(400).json({ message: "Provide email, password and name" });
-    return;
-  }
-
-  // This regular expression check that the email is of a valid format
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
-  if (!emailRegex.test(email)) {
-    res.status(400).json({ message: "Provide a valid email address." });
-    return;
-  }
-
-  // This regular expression checks password for special characters and minimum length
-  const passwordRegex = /(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{6,}/;
-  if (!passwordRegex.test(password)) {
-    res.status(400).json({
-      message:
-        "Password must have at least 6 characters and contain at least one number, one lowercase and one uppercase letter.",
-    });
-    return;
-  }
-
-  // Check the users collection if a user with the same email already exists
-  User.findOne({ email })
-    .then((foundUser) => {
-      // If the user with the same email already exists, send an error response
-      if (foundUser) {
-        res.status(400).json({ message: "User already exists." });
-        return;
-      }
-
-      // If email is unique, proceed to hash the password
-      const salt = bcrypt.genSaltSync(saltRounds);
-      const hashedPassword = bcrypt.hashSync(password, salt);
-
-      // Create the new user in the database
-      // We return a pending promise, which allows us to chain another `then`
-      return User.create({ email, password: hashedPassword, name });
-    })
-    .then((createdUser) => {
-
-      if(!createdUser) {
-        throw new Error("Failed to create user.");
-      }
-      
-      // Deconstruct the newly created user object to omit the password
-      // We should never expose passwords publicly
-      const { email, name, _id } = createdUser;
-
-      // Create a new object that doesn't expose the password
-      const user = { email, name, _id };
-
-      // Send a json response containing the user object
-      res.status(201).json({ user: user });
-    })
-    .catch((err) => {
-      console.error("Error creating user:", err);
-      next(err);
-    }); // In this case, we send error handling to the error handling middleware.
 });
 
 // POST  /auth/login - Verifies email and password and returns a JWT
@@ -143,6 +128,16 @@ router.post("/login", (req, res, next) => {
       }
     })
     .catch((err) => next(err)); // In this case, we send error handling to the error handling middleware.
+});
+
+// Checks number of users in the database
+router.get("/user-count", async (req, res) => {
+  try {
+    const userCount = await User.countDocuments(); // Counts total users
+    res.status(200).json({ userCount });
+  } catch (err) {
+    res.status(500).json({ message: "Error fetching user count." });
+  }
 });
 
 // GET  /auth/verify  -  Used to verify JWT stored on the client
