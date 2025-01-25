@@ -10,6 +10,11 @@ router.post("/books", isAuthenticated, (req, res) => {
     const { title, author, bookImageUrl, genre, review } = req.body;
     const userId = req.payload._id;
 
+    //Validation checks for each book field
+    if (!title || !author || !bookImageUrl || !genre || !review) {
+      return res.status(400).json({ error: "Please fill out all required fields" });
+    }
+
     Book.create({
       title,
       author,
@@ -18,8 +23,8 @@ router.post("/books", isAuthenticated, (req, res) => {
       review,
       userId,
     })
-      .then((newBook) => res.status(201).json(newBook))
-      .catch((err) => res.status(500).json({ error: "Failed to add book", details: err }));
+      .then((newBook) => res.status(201).json({ data: newBook}))
+      .catch((error) => res.status(500).json({ error: "Failed to add book", details: error }));
   }
 );
 
@@ -50,15 +55,15 @@ router.put("/books/:id", isAuthenticated, (req, res) => {
     const updates = req.body;
 
     if (!mongoose.Types.ObjectId.isValid(id)) {
-      return res.status(400).json({ message: "Specified book id is not valid" });
+      return res.status(400).json({ message: "Failed to update book" });
     }
 
     Book.findByIdAndUpdate(id, updates, { new: true })
       .then((updatedBook) => {
         if (!updatedBook) {
-          return res.status(404).json({ error: "Book not found" });
+          return res.status(404).json({ error: "Failed to find book to update" });
         }
-        res.status(200).json(updatedBook);
+        res.status(200).json({ data: updatedBook });
       })
       .catch((err) => res.status(500).json({ error: "Failed to update book", details: err }));
   }
