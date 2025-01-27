@@ -4,7 +4,7 @@ const mongoose = require("mongoose");
 const Book = require("../models/Book.model");
 const { isAuthenticated } = require("../middleware/jwt.middleware");
 
-// POST /api/books - Add a new book
+// POST Add a new book
 router.post("/books", isAuthenticated, (req, res) => {
 
     const { title, author, bookImageUrl, genre, wordCount, review } = req.body;
@@ -29,7 +29,7 @@ router.post("/books", isAuthenticated, (req, res) => {
   }
 );
 
-// GET /api/books - Retrieve all books (public)
+// GET Retrieve all books 
 router.get("/books", (req, res) => {
   Book.find()
     .select("-review") // Exclude reviews for public viewing
@@ -37,8 +37,8 @@ router.get("/books", (req, res) => {
     .catch((err) => res.status(500).json({ error: "Failed to fetch books", details: err }));
 });
 
-// GET /api/books/user/:userId - Retrieve books by user
-router.get("/books/user/:userId", isAuthenticated, (req, res) => {
+// GET Retrieve books by user
+router.get("/books/user/:userId", (req, res) => {
   const { userId } = req.params;
 
   if (!mongoose.Types.ObjectId.isValid(userId)) {
@@ -50,7 +50,7 @@ router.get("/books/user/:userId", isAuthenticated, (req, res) => {
     .catch((err) => res.status(500).json({ error: "Failed to fetch user books", details: err }));
 });
 
-// PUT /api/books/:id - Update a book
+// PUT Update a book
 router.put("/books/:id", isAuthenticated, (req, res) => {
     const { id } = req.params;
     const updates = req.body;
@@ -70,7 +70,7 @@ router.put("/books/:id", isAuthenticated, (req, res) => {
   }
 );
 
-// DELETE /api/books/:id - Delete a book
+// DELETE Delete a book
 router.delete("/books/:id", isAuthenticated, (req, res) => {
   const { id } = req.params;
 
