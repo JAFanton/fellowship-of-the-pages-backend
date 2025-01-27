@@ -20,6 +20,10 @@ const bookSchema = new Schema({
         required: true,
         enum: ['Fiction', 'Non-Fiction']
     },
+    wordCount: {
+        type: Number,
+        required: true,
+      },
     review: {
         type: String,
         required: true

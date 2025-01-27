@@ -7,11 +7,11 @@ const { isAuthenticated } = require("../middleware/jwt.middleware");
 // POST /api/books - Add a new book
 router.post("/books", isAuthenticated, (req, res) => {
 
-    const { title, author, bookImageUrl, genre, review } = req.body;
+    const { title, author, bookImageUrl, genre, wordCount, review } = req.body;
     const userId = req.payload._id;
 
     //Validation checks for each book field
-    if (!title || !author || !bookImageUrl || !genre || !review) {
+    if (!title || !author || !bookImageUrl || !genre || !wordCount || !review) {
       return res.status(400).json({ error: "Please fill out all required fields" });
     }
 
@@ -21,6 +21,7 @@ router.post("/books", isAuthenticated, (req, res) => {
       bookImageUrl,
       genre,
       review,
+      wordCount,
       userId,
     })
       .then((newBook) => res.status(201).json({ data: newBook}))
