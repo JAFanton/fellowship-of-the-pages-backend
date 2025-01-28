@@ -50,6 +50,27 @@ router.get("/books/user/:userId", (req, res) => {
     .catch((err) => res.status(500).json({ error: "Failed to fetch user books", details: err }));
 });
 
+//GET retrieve book by ID
+router.get("/books/:id", (req, res) => {
+  const { id } = req.params;
+
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    return res.status(400).json({ error: "Invalid book ID format" });
+  }
+
+  Book.findById(id)
+    .then((book) => {
+      if (!book) {
+        return res.status(404).json({ error: "Book not found" });
+      }
+      res.status(200).json(book);
+    })
+    .catch((err) => {
+      res.status(500).json({ error: "Failed to fetch book details", details: err });
+    });
+});
+
+
 // PUT Update a book
 router.put("/books/:id", isAuthenticated, (req, res) => {
     const { id } = req.params;
