@@ -20,7 +20,7 @@ router.get("/users", async (req, res) => {
         const fictionBooks = books.filter((book) => book.genre === "Fiction").length;
         const nonFictionBooks = books.filter((book) => book.genre === "Non-Fiction").length;
 
-        const points = Math.min(fictionBooks, nonFictionBooks); // One point per matching pair
+        const points = Math.min(fictionBooks, nonFictionBooks); // One point awarded per non-fiction and fiction book
 
         return { ...user.toObject(), points };
       })
