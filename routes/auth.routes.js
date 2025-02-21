@@ -17,14 +17,25 @@ router.get("/users", async (req, res) => {
       users.map(async (user) => {
         const books = await Book.find({ userId: user._id });
 
-        const fictionBooks = books.filter((book) => book.genre === "Fiction").length;
-        const nonFictionBooks = books.filter((book) => book.genre === "Non-Fiction").length;
+        // Calculate fiction and non-fiction points separately
+        let fictionPoints = 0;
+        let nonFictionPoints = 0;
 
-        const points = Math.min(fictionBooks, nonFictionBooks); // One point awarded per non-fiction and fiction book
+        books.forEach((book) => {
+          if (book.genre === "Fiction") {
+            fictionPoints += book.wordCount > 300000 ? 2 : 1;
+          } else if (book.genre === "Non-Fiction") {
+            nonFictionPoints += book.wordCount > 300000 ? 2 : 1;
+          }
+        });
+
+        // Points are determined by the minimum of fiction and non-fiction points
+        const points = Math.min(fictionPoints, nonFictionPoints);
 
         return { ...user.toObject(), points };
       })
     );
+
 
     res.status(200).json(usersWithPoints);
   } catch (err) {
